@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浏览器resize事件调试工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stats-card {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #fdbb2d;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background: #fdbb2d;
+            color: #1a2a6c;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #ffcc44;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .visualization {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        
+        .timeline {
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        
+        .bar {
+            background: #fdbb2d;
+            width: 4px;
+            transition: height 0.3s;
+        }
+        
+        .guide {
+            grid-column: 1 / -1;
+        }
+        
+        .steps {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .step {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            background: #fdbb2d;
+            color: #1a2a6c;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+        
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            color: #fdbb2d;
+        }
+        
+        .highlight {
+            color: #ff5252;
+            font-weight: bold;
+        }
+        
+        .event-log {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+        }
+        
+        .current-size {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>浏览器resize事件调试工具</h1>
+            <p class="subtitle">实时监控和分析窗口调整大小时resize事件的触发情况</p>
+        </header>
+        
+        <div class="card stats-card">
+            <h2>事件统计</h2>
+            <div class="stat">
+                <span>触发次数:</span>
+                <span class="stat-value" id="count">0</span>
+            </div>
+            <div class="stat">
+                <span>最近触发间隔:</span>
+                <span class="stat-value" id="interval">0 ms</span>
+            </div>
+            <div class="stat">
+                <span>最高频率:</span>
+                <span class="stat-value" id="max-frequency">0 events/sec</span>
+            </div>
+            
+            <div class="controls">
+                <button id="pause-btn">暂停</button>
+                <button id="reset-btn">重置</button>
+                <button id="clear-log-btn">清除日志</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>实时可视化</h2>
+            <div class="current-size">
+                当前窗口尺寸: <span id="width">0</span> x <span id="height">0</span> px
+            </div>
+            <div class="visualization">
+                <div class="timeline" id="timeline"></div>
+            </div>
+        </div>
+        
+        <div class="card guide">
+            <h2>如何使用开发者工具查看resize事件</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div>
+                        <p>打开浏览器开发者工具 (F12 或 Ctrl+Shift+I)</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div>
+                        <p>转到 "Performance" 或 "Performance" 标签</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>
+                        <p>点击录制按钮，然后调整浏览器窗口大小</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div>
+                        <p>停止录制，查看分析结果中的 "Event" 部分</p>
+                        <p class="highlight">查找 "resize" 或 "ResizeObserver" 事件</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div>
+                        <p>替代方法：在 "Elements" 标签中，选择 &lt;body&gt; 元素</p>
+                        <p>在 "Event Listeners" 选项卡中查找 "resize" 事件</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="code-block">
+                <p>代码示例：添加resize事件监听器</p>
+                <code>
+                    let count = 0;<br>
+                    window.addEventListener('resize', () => {<br>
+                    &nbsp;&nbsp;count++;<br>
+                    &nbsp;&nbsp;console.log(`Resize event triggered: ${count} times`);<br>
+                    });
+                </code>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>事件日志</h2>
+            <div class="event-log" id="event-log"></div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化变量
+        let eventCount = 0;
+        let lastResizeTime = 0;
+        let maxFrequency = 0;
+        let isPaused = false;
+        let lastEventTime = Date.now();
+        
+        // DOM元素
+        const countElement = document.getElementById('count');
+        const intervalElement = document.getElementById('interval');
+        const maxFrequencyElement = document.getElementById('max-frequency');
+        const widthElement = document.getElementById('width');
+        const heightElement = document.getElementById('height');
+        const timelineElement = document.getElementById('timeline');
+        const eventLogElement = document.getElementById('event-log');
+        const pauseButton = document.getElementById('pause-btn');
+        const resetButton = document.getElementById('reset-btn');
+        const clearLogButton = document.getElementById('clear-log-btn');
+        
+        // 更新窗口尺寸显示
+        function updateWindowSize() {
+            widthElement.textContent = window.innerWidth;
+            heightElement.textContent = window.innerHeight;
+        }
+        
+        // 添加事件日志
+        function addLogEntry(message) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[${timeString}] ${message}`;
+            eventLogElement.appendChild(logEntry);
+            eventLogElement.scrollTop = eventLogElement.scrollHeight;
+        }
+        
+        // 添加时间轴条目
+        function addTimelineBar() {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = '10px';
+            timelineElement.appendChild(bar);
+            
+            // 限制时间轴条目数量
+            if (timelineElement.children.length > 100) {
+                timelineElement.removeChild(timelineElement.children[0]);
+            }
+            
+            // 动画效果
+            setTimeout(() => {
+                bar.style.height = '40px';
+            }, 10);
+            
+            setTimeout(() => {
+                bar.style.height = '10px';
+            }, 300);
+        }
+        
+        // resize事件处理函数
+        function handleResize() {
+            if (isPaused) return;
+            
+            const now = Date.now();
+            const timeSinceLastEvent = now - lastEventTime;
+            
+            eventCount++;
+            countElement.textContent = eventCount;
+            
+            if (lastResizeTime !== 0) {
+                intervalElement.textContent = `${timeSinceLastEvent} ms`;
+                
+                // 计算频率 (事件/秒)
+                const frequency = 1000 / timeSinceLastEvent;
+                if (frequency > maxFrequency) {
+                    maxFrequency = frequency;
+                    maxFrequencyElement.textContent = `${maxFrequency.toFixed(2)} events/sec`;
+                }
+            }
+            
+            lastResizeTime = now;
+            lastEventTime = now;
+            
+            updateWindowSize();
+            addLogEntry(`Resize event #${eventCount} (间隔: ${timeSinceLastEvent}ms)`);
+            addTimelineBar();
+        }
+        
+        // 初始化函数
+        function init() {
+            updateWindowSize();
+            
+            // 添加事件监听器
+            window.addEventListener('resize', handleResize);
+            
+            pauseButton.addEventListener('click', () => {
+                isPaused = !isPaused;
+                pauseButton.textContent = isPaused ? '继续' : '暂停';
+                addLogEntry(isPaused ? '监控已暂停' : '监控已继续');
+            });
+            
+            resetButton.addEventListener('click', () => {
+                eventCount = 0;
+                lastResizeTime = 0;
+                maxFrequency = 0;
+                countElement.textContent = '0';
+                intervalElement.textContent = '0 ms';
+                maxFrequencyElement.textContent = '0 events/sec';
+                
+                // 清除时间轴
+                while (timelineElement.firstChild) {
+                    timelineElement.removeChild(timelineElement.firstChild);
+                }
+                
+                addLogEntry('计数器已重置');
+            });
+            
+            clearLogButton.addEventListener('click', () => {
+                while (eventLogElement.firstChild) {
+                    eventLogElement.removeChild(eventLogElement.firstChild);
+                }
+                addLogEntry('日志已清除');
+            });
+            
+            addLogEntry('监控已启动，请尝试调整浏览器窗口大小');
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

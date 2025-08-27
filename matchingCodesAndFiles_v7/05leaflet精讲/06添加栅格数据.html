@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>加载手工绘图</title>
+    <link rel="stylesheet" href="./leaflet.css" />
+    <script src="./leaflet.js"></script>
+    <style>
+      #map {
+        width: 100%;
+        height: 100vh;
+        position: absolute;
+        z-index: 1;
+        left: 0;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    const map = L.map("map", {
+      center: [29.149391, 119.799596],
+      zoom: 6,
+    });
+    //绍兴市的边界
+    const bound = [119.889067, 29.225091, 121.231536, 30.286319];
+    var imageUrl = "../shaoxing.jpg",
+      imageBounds = [
+        [29.225091, 119.889067],
+        [30.286319, 121.231536],
+      ];
+    L.imageOverlay(imageUrl, imageBounds).addTo(map);
+  </script>
+</html>

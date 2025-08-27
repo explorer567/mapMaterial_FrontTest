@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapbox Canvas动态图标</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        header {
+            background: linear-gradient(90deg, #4269e2 0%, #3a2db1 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .map-container {
+            flex: 1;
+            min-width: 300px;
+            height: 500px;
+        }
+        .explanation {
+            flex: 1;
+            min-width: 300px;
+            padding: 25px;
+            background-color: #f9fafc;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        h3 {
+            color: #4a5568;
+            margin: 15px 0 10px;
+        }
+        p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        ul {
+            color: #4a5568;
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .code-block {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 18px;
+            border-radius: 8px;
+            font-family: 'Consolas', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+        .highlight {
+            background-color: #4a5568;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #68d391;
+        }
+        .param {
+            color: #81e6d9;
+        }
+        .method {
+            color: #feb2b2;
+        }
+        .comment {
+            color: #a0aec0;
+            font-style: italic;
+        }
+        .canvas-preview {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        #dotCanvas {
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        input[type="range"] {
+            width: 200px;
+        }
+        footer {
+            padding: 20px;
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            background-color: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        .map-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            z-index: 1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mapbox Canvas动态图标示例</h1>
+            <p class="subtitle">使用Canvas创建动态 pulsating 地图标记</p>
+        </header>
+        
+        <div class="content">
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-overlay">
+                    <p>拖动滑块调整动态效果</p>
+                    <div class="controls">
+                        <div class="control-group">
+                            <label for="sizeSlider">图标大小: <span id="sizeValue">100</span>px</label>
+                            <input type="range" id="sizeSlider" min="50" max="200" value="100">
+                        </div>
+                        <div class="control-group">
+                            <label for="speedSlider">脉冲速度: <span id="speedValue">1.0</span>x</label>
+                            <input type="range" id="speedSlider" min="0.5" max="3" step="0.1" value="1.0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="explanation">
+                <div class="section">
+                    <h2>Canvas动态图标参数解析</h2>
+                    <p>Mapbox允许使用Canvas创建动态图标，下面是对<code>pulsingDot</code>对象参数和方法的详细解释：</p>
+                    
+                    <h3>基本参数</h3>
+                    <ul>
+                        <li><span class="highlight">width</span> 和 <span class="highlight">height</span>: 定义图标的尺寸（像素）</li>
+                        <li><span class="highlight">data</span>: 存储图像像素数据的Uint8Array，格式为RGBA（红、绿、蓝、透明度）</li>
+                    </ul>
+                    
+                    <h3>核心方法</h3>
+                    <ul>
+                        <li><span class="highlight">onAdd()</span>: 图标添加到地图时调用，用于创建Canvas元素</li>
+                        <li><span class="highlight">render()</span>: 每一帧都会调用，用于绘制动态效果</li>
+                    </ul>
+                </div>
+                
+                <div class="section">
+                    <h2>代码实现解析</h2>
+                    <div class="code-block">
+                        <span class="comment">// 创建pulsingDot对象</span><br>
+                        <span class="keyword">const</span> pulsingDot = {<br>
+                        &nbsp;&nbsp;<span class="param">width</span>: <span class="value">size</span>, <span class="comment">// 图标宽度</span><br>
+                        &nbsp;&nbsp;<span class="param">height</span>: <span class="value">size</span>, <span class="comment">// 图标高度</span><br>
+                        &nbsp;&nbsp;<span class="param">data</span>: <span class="keyword">new</span> Uint8Array(<span class="value">size * size * 4</span>), <span class="comment">// 图像数据数组</span><br><br>
+                        &nbsp;&nbsp;<span class="method">onAdd</span>: <span class="keyword">function</span>() {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 创建canvas元素并设置上下文</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> canvas = document.createElement(<span class="value">"canvas"</span>);<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;canvas.width = <span class="keyword">this</span>.width;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;canvas.height = <span class="keyword">this</span>.height;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span>.context = canvas.getContext(<span class="value">"2d"</span>);<br>
+                        &nbsp;&nbsp;},<br><br>
+                        &nbsp;&nbsp;<span class="method">render</span>: <span class="keyword">function</span>() {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 计算动画进度 (0到1之间循环)</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> duration = <span class="value">1000</span>;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">const</span> t = (performance.now() % duration) / duration;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 绘制动态效果...</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">// 更新图像数据并触发重绘</span><br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">this</span>.data = <span class="keyword">this</span>.context.getImageData(...).data;<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;map.triggerRepaint();<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">return</span> <span class="value">true</span>;<br>
+                        &nbsp;&nbsp;}<br>
+                        };
+                    </div>
+                    
+                    <h3>Mapbox文档相关部分</h3>
+                    <p>在Mapbox文档中，这些功能主要在以下部分说明：</p>
+                    <ul>
+                        <li><strong>addImage()</strong>方法：接受自定义图像对象</li>
+                        <li><strong>CanvasSource</strong>和动态图标：说明如何实现动态效果</li>
+                        <li><strong>triggerRepaint()</strong>方法：用于手动触发地图重绘</li>
+                    </ul>
+                </div>
+                
+                <div class="section">
+                    <h2>Canvas预览</h2>
+                    <div class="canvas-preview">
+                        <canvas id="dotCanvas" width="200" height="200"></canvas>
+                    </div>
+                    <p>上方的Canvas展示了当前参数的动态效果（模拟）。在实际地图中，这个图标会被添加为标记并动态渲染。</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Mapbox GL JS示例 | Canvas动态图标实现与解析</p>
+        </footer>
+    </div>
+<script src="./myToken.js"></script>
+    <script>
+        // 设置Mapbox访问令牌（注意：实际使用时需要有效的token）
+        // mapboxgl.accessToken = 'pk.eyJ1IjoiZXhhbXBsZS11c2VyIiwiYSI6ImNrandnOHJndDAxd2kycG8yeHl6cTB6eW8ifQ.mock-token';
+        
+        // 初始化地图
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [-74.006, 40.7128],
+            zoom: 12
+        });
+        
+        // 创建动态点对象
+        function createPulsingDot(size) {
+            return {
+                width: size,
+                height: size,
+                data: new Uint8Array(size * size * 4),
+
+                onAdd: function () {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = this.width;
+                    canvas.height = this.height;
+                    this.context = canvas.getContext("2d");
+                },
+
+                render: function () {
+                    const duration = 1000 / parseFloat(document.getElementById('speedSlider').value);
+                    const t = (performance.now() % duration) / duration;
+                    const radius = (size / 2) * 0.3;
+                    const outerRadius = (size / 2) * 0.7 * t + radius;
+                    const context = this.context;
+                    
+                    // 绘制外圈
+                    context.clearRect(0, 0, this.width, this.height);
+                    context.beginPath();
+                    context.arc(
+                        this.width / 2,
+                        this.height / 2,
+                        outerRadius,
+                        0,
+                        Math.PI * 2
+                    );
+                    context.fillStyle = `rgba(0, 246, 255, ${1 - t})`;
+                    context.fill();
+
+                    // 绘制内圈
+                    context.beginPath();
+                    context.arc(
+                        this.width / 2,
+                        this.height / 2,
+                        radius,
+                        0,
+                        Math.PI * 2
+                    );
+                    context.fillStyle = "rgba(0, 246, 255, 1)";
+                    context.strokeStyle = "rgba(0, 246, 255, 1)";
+                    context.lineWidth = 2 + 4 * (1 - t);
+                    context.fill();
+                    context.stroke();
+
+                    // 更新图像数据
+                    this.data = context.getImageData(
+                        0,
+                        0,
+                        this.width,
+                        this.height
+                    ).data;
+
+                    // 触发地图重绘
+                    map.triggerRepaint();
+                    
+                    // 同时更新预览Canvas
+                    updatePreviewCanvas(context, size);
+                    
+                    return true;
+                }
+            };
+        }
+        
+        // 更新预览Canvas
+        function updatePreviewCanvas(sourceContext, size) {
+            const previewCanvas = document.getElementById('dotCanvas');
+            const ctx = previewCanvas.getContext('2d');
+            
+            // 清除画布
+            ctx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            
+            // 绘制到预览Canvas
+            const scale = previewCanvas.width / size;
+            ctx.save();
+            ctx.scale(scale, scale);
+            ctx.drawImage(sourceContext.canvas, 0, 0);
+            ctx.restore();
+        }
+        
+        // 地图加载完成后添加动态图标
+        map.on('load', () => {
+            const initialSize = 100;
+            const pulsingDot = createPulsingDot(initialSize);
+            
+            // 添加动态图标
+            map.addImage("pulsing-dot", pulsingDot, { pixelRatio: 2 });
+            
+            // 添加数据源
+            map.addSource('points', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: [
+                        {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [-74.006, 40.7128]
+                            },
+                            properties: {
+                                title: '动态标记点'
+                            }
+                        }
+                    ]
+                }
+            });
+            
+            // 添加图层
+            map.addLayer({
+                id: 'points',
+                type: 'symbol',
+                source: 'points',
+                layout: {
+                    'icon-image': 'pulsing-dot',
+                    'icon-size': 0.5,
+                    'text-field': ['get', 'title'],
+                    'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                    'text-offset': [0, 1.5],
+                    'text-anchor': 'top'
+                }
+            });
+        });
+        
+        // 添加控制交互
+        document.getElementById('sizeSlider').addEventListener('input', function() {
+            const newSize = parseInt(this.value);
+            document.getElementById('sizeValue').textContent = newSize;
+            
+            // 移除旧图标
+            if (map.hasImage('pulsing-dot')) {
+                map.removeImage('pulsing-dot');
+            }
+            
+            // 创建新图标并添加
+            const pulsingDot = createPulsingDot(newSize);
+            map.addImage("pulsing-dot", pulsingDot, { pixelRatio: 2 });
+        });
+        
+        document.getElementById('speedSlider').addEventListener('input', function() {
+            document.getElementById('speedValue').textContent = this.value;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style >
+    *{
+      /* box-sizing: border-box; */
+      box-sizing: content-box;
+    }
+  .father {
+    height:calc(100vh - 200px);
+    display:flex;
+    flex-direction: column;
+    border:4px solid blue;
+  }
+  .topBar{
+    height:100px;
+    flex-shrink: 0;
+    background-color: red;
+  }
+  .main{
+flex:1;
+background-color: skyblue;
+overflow-y:auto;
+  }
+  .mainInner{
+    height:100%;
+    /* height:500px; */
+    width:800px;
+    background-color: pink;
+    overflow-y:auto;
+    border:2px solid red;
+  }
+  .mainInnerInner{
+    width: 500px;
+    height:500px;
+    background-color: yellow;
+  }
+  </style>
+</head>
+<body>
+  <div class="father">
+    father
+<div class="topBar">topBar</div>
+<div class="main">main
+  <div class="mainInner">mainInner
+    <div class="mainInnerInner">mainInnerInner</div>
+  </div>
+</div>
+</div>
+  </div>
+</body>
+</html>

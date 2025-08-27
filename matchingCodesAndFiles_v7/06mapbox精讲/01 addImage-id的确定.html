@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapbox 自定义图标示例</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(90deg, #4269e2 0%, #3a2db1 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .map-container {
+            flex: 1;
+            min-width: 300px;
+            height: 400px;
+        }
+        .explanation {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background-color: #f9fafc;
+        }
+        .code-block {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        .highlight {
+            background-color: #4a5568;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #68d391;
+        }
+        footer {
+            padding: 15px;
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        .marker {
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cat_silhouette.svg/400px-Cat_silhouette.svg.png');
+            background-size: cover;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .mapboxgl-popup {
+            max-width: 200px;
+        }
+        .mapboxgl-popup-content {
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mapbox 自定义图标示例</h1>
+        </header>
+        
+        <div class="content">
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+            
+            <div class="explanation">
+                <h2>代码解析：图片ID的确定</h2>
+                <p>在Mapbox中，当使用<code>addImage()</code>方法时，我们需要为添加的图片指定一个唯一的ID。</p>
+                
+                <div class="code-block">
+                    map.loadImage('https://.../cat_silhouette.svg', (error, image) => {<br>
+                    &nbsp;&nbsp;if (error) throw error;<br>
+                    &nbsp;&nbsp;if (!map.hasImage('<span class="highlight">cat</span>')) map.addImage('<span class="highlight">cat</span>', image);<br>
+                    });
+                </div>
+                
+                <p>在这段代码中，ID '<span class="highlight">cat</span>' 是<strong>由开发者自行选择</strong>的字符串标识符。</p>
+                
+                <p>这个ID用于：</p>
+                <ul>
+                    <li>在后续代码中引用这个图片</li>
+                    <li>在地图样式中使用这个图片作为图标</li>
+                    <li>检查图片是否已经加载过（通过<code>hasImage()</code>方法）</li>
+                </ul>
+                
+                <p>ID的选择应该：</p>
+                <ul>
+                    <li>具有描述性（这里使用'cat'因为图片是猫的轮廓）</li>
+                    <li>在当前地图实例中保持唯一</li>
+                    <li>不包含特殊字符或空格</li>
+                </ul>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Mapbox GL JS示例 | 自定义图标加载与使用</p>
+        </footer>
+    </div>
+
+    <script>
+        // 设置Mapbox访问令牌
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYnJpdHRhbnl5ZWUiLCJhIjoiY2p1ZTdpN3M4MDBlMzQ0bHJhaDh1b203ZyJ9.Kv9ykdRmPx5utrcMAY9uCg';
+        
+        // 初始化地图
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [-74.006, 40.7128], // 纽约市坐标
+            zoom: 12
+        });
+        
+        // 地图加载完成后添加自定义图标和标记
+        map.on('load', () => {
+            // 加载自定义图标
+            map.loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cat_silhouette.svg/400px-Cat_silhouette.svg.png', (error, image) => {
+                if (error) throw error;
+                
+                // 添加图片到地图，使用'cat'作为ID
+                if (!map.hasImage('cat')) {
+                    map.addImage('cat', image);
+                }
+                
+                // 添加一个数据源
+                map.addSource('points', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: [
+                            {
+                                type: 'Feature',
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: [-74.006, 40.7128]
+                                },
+                                properties: {
+                                    title: '纽约市猫猫'
+                                }
+                            },
+                            {
+                                type: 'Feature',
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: [-74.050, 40.705]
+                                },
+                                properties: {
+                                    title: '华尔街猫猫'
+                                }
+                            }
+                        ]
+                    }
+                });
+                
+                // 添加一个使用自定义图标的图层
+                map.addLayer({
+                    id: 'points',
+                    type: 'symbol',
+                    source: 'points',
+                    layout: {
+                        'icon-image': 'cat', // 这里使用之前定义的'cat'ID
+                        'icon-size': 0.1,
+                        'text-field': ['get', 'title'],
+                        'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                        'text-offset': [0, 1.5],
+                        'text-anchor': 'top'
+                    }
+                });
+            });
+        });
+        
+        // 添加一些交互
+        map.on('click', 'points', (e) => {
+            const coordinates = e.features[0].geometry.coordinates.slice();
+            const description = e.features[0].properties.title;
+            
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(map);
+        });
+        
+        // 改变鼠标指针样式
+        map.on('mouseenter', 'points', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+        
+        map.on('mouseleave', 'points', () => {
+            map.getCanvas().style.cursor = '';
+        });
+    </script>
+</body>
+</html>

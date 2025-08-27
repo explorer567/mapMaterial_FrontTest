@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>认识GeoJSON</title>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+  <script>
+    //一个要素，
+    const json = {
+      type: "Feature",
+      properties: { name: "杭州市" },
+      geometry: { type: "Point", coordinates: [[120.3422342, 29.23423]] },
+    };
+    //type字段一般是固定的，就是type:Feature表示一个要素
+    //properties里面存储的是一些属性信息，
+    //比如一个poi点的名字，类型，等。
+    //一个地块的所属人，面积等，就是用于存储和要素相关的属性信息
+    //geometry是要素的图形字段，包含类型字段type和坐标数据字段coordinates
+    //geometry的type一共有6种
+    //分别是Point/MultiPoint/LineString/MultiLineString/Polygon/MultiPolygon
+    //集合
+    const collection = {
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          properties: { name: "杭州市" },
+          geometry: {
+            type: "Polygon",
+            coordinates: [[120.3422342, 29.23423], [], []],
+          },
+        },
+        {
+          type: "Feature",
+          properties: { name: "杭州市" },
+          geometry: {
+            type: "LineString",
+            coordinates: [[120.3422342, 29.23423]],
+          },
+        },
+        {
+          type: "Feature",
+          properties: { name: "杭州市" },
+          geometry: {
+            type: "Point",
+            coordinates: [[120.3422342, 29.23423]],
+          },
+        },
+      ],
+    };
+    const wkt = "Polygon([22030,3132])";
+  </script>
+</html>

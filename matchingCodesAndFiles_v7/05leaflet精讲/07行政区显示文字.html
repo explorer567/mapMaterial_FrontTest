@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>base</title>
+    <link rel="stylesheet" href="./leaflet.css" />
+    <script src="./leaflet.js"></script>
+    <script src="../hangzhou.js"></script>
+  </head>
+  <style>
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    const map = L.map("map", {
+      center: [30.201854, 119.343995],
+      zoom: 8,
+      crs: L.CRS.EPSG4326, //wgs84坐标系的代码
+    });
+    //用对象的方式配置样式
+    const myStyle = {
+      fillColor: "yellow",
+      weight: 3,
+      fillOpacity: 1,
+    };
+    const layer = L.geoJson(hangzhou, {
+      style: myStyle,
+      onEachFeature: function (feature, layer) {
+        const div =
+          "<div style='width:200px'>" + feature.properties.name + "</div>";
+        const divIcon = L.divIcon({ className: "test", html: div });
+        L.marker(feature.properties.centroid.reverse(), {
+          icon: divIcon,
+        }).addTo(map);
+      },
+    });
+    layer.addTo(map);
+    map.fitBounds(layer.getBounds());
+    function highLight(e) {
+      layer.setStyle(myStyle);
+      var newLayer = e.target;
+      newLayer.setStyle({
+        fillColor: "red",
+      });
+
+      newLayer.bringToFront();
+    }
+  </script>
+</html>

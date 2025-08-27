@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <iframe
+      src="./地块绘制组件.html"
+      id="draw"
+      width="800"
+      height="800"
+      frameborder="0"
+    ></iframe>
+    <button onclick="getMass()">获取地图上的地块</button>
+  </body>
+  <script>
+    //示例只做用法说明使用，支持vue，react，生产环境可将此示例页面删除
+    var child = document.getElementById("draw");
+    //地块数据
+    const feature = {
+      type: "Feature",
+      properties: { name: "zhangsan" },
+      geometry: {
+        coordinates: [
+          [
+            [114.0507735766588, 32.18751777540865],
+            [114.0507735766588, 32.14276096900599],
+            [114.14072413818155, 32.139272502396224],
+            [114.19290919677519, 32.205530540177335],
+            [114.0507735766588, 32.18751777540865],
+          ],
+        ],
+        type: "Polygon",
+      },
+    };
+    child.onload = () => {
+      child.contentWindow.loadMass(feature);
+    };
+    //获取地图上的所有地块
+    function getMass() {
+      const data = child.contentWindow.saveFeature();
+      console.log(data);
+    }
+  </script>
+</html>

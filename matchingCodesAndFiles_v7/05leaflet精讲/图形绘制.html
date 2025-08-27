@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>base</title>
+    <link rel="stylesheet" href="./leaflet.css" />
+
+    <script src="./leaflet.js"></script>
+    <script src="./token.js"></script>
+    <link rel="stylesheet" href="./leaflet.draw.css" />
+    <script src="./leaflet.draw.js"></script>
+  </head>
+  <style>
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    const map = L.map("map", {
+      center: [29.838366, 120.838365],
+      zoom: 6,
+      //crs: L.CRS.EPSG4326, //wgs84坐标系的代码，如果是墨卡托投影则不需要填写这里
+    });
+    const TDT_TOKEN = tdt_token;
+    //xyz方式
+    const tdt_url =
+      "https://t0.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=";
+    const layer = L.tileLayer(tdt_url + TDT_TOKEN, {
+      //zoomOffset: 1, //缩放偏移，这是leaflet框架内部的问题，不用在意
+      tileSize: 256, //地图瓦片的尺寸
+      maxZoom: 18, //最大缩放层级
+    });
+    layer.addTo(map);
+    //创建一个空的要素集合用于保存将来绘制的图层
+    let editableLayers = new L.FeatureGroup();
+    map.addLayer(editableLayers);
+    //添加绘制组件
+    let draw = new L.Control.Draw({
+      position: "topleft",
+      draw: { polyline: true, polygon: true, circle: true },
+      //可以传入图层作为可编辑的图层
+      edit: {
+        featureGroup: editableLayers,
+        remvove: false,
+      },
+    }).addTo(map);
+    map.on(L.Draw.Event.CREATED, (e) => {
+      //开始创建绘画的监听，在这里可以得到你绘制的图形并且添加到地图上
+      //你可以通过e.layer来获取到你画的图形
+      editableLayers.addLayer(e.layer);
+    });
+    map.on(L.Draw.Event.DRAWSTOP, (e) => {
+      //这里是绘制结束的监听，你也可以在这里拿到绘制的数据并作其他操作
+    });
+  </script>
+</html>

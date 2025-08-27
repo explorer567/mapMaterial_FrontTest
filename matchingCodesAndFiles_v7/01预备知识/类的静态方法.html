@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      class Person {
+        constructor() {}
+        //这个方法为静态方法，只能够被类本身调用，实例不能够调用
+        static war() {
+          console.log("人类发起了战争！");
+        }
+      }
+      Person.war();
+      //下面这种写法是错误的
+      let p1 = new Person();
+      p1.war();
+      // Array.isArray(data);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>base</title>
+    <link rel="stylesheet" href="./leaflet.css" />
+    <script src="./leaflet.js"></script>
+    <script src="./token.js"></script>
+  </head>
+  <style>
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    const map = L.map("map", {
+      center: [29.838366, 120.838365],
+      zoom: 6,
+      crs: L.CRS.EPSG4326, //wgs84坐标系的代码，如果是墨卡托投影则不需要填写这里
+    });
+    const TDT_TOKEN = tdt_token;
+    //xyz方式
+    const tdt_url =
+      "https://t0.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=";
+    const layer = L.tileLayer(tdt_url + TDT_TOKEN, {
+      zoomOffset: 1, //缩放偏移，这是leaflet框架内部的问题，不用在意
+      tileSize: 256, //地图瓦片的尺寸
+      maxZoom: 18, //最大缩放层级
+    });
+    layer.addTo(map);
+
+    //wmts方式
+    // const wmts_url =
+    //   "http://t0.tianditu.gov.cn/img_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=";
+    // const layer = L.tileLayer(wmts_url + TDT_TOKEN, {
+    //   zoomOffset: 1,
+    //   tileSize: 256,
+    //   maxZoom: 18,
+    // });
+    // layer.addTo(map);
+  </script>
+</html>

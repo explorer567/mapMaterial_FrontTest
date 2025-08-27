@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="./mapbox-gl.js"></script>
+    <link href="./mapbox-gl.css" rel="stylesheet" />
+    <script src="./token.js"></script>
+    <script src="../hangzhou.js"></script>
+    <style>
+      #map {
+        position: absolute;
+        width: 100%;
+        height: 100vh;
+        left: 0;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    mapboxgl.accessToken = mapboxtoken;
+    const map = new mapboxgl.Map({
+      container: "map",
+      center: [120.536363, 29.243242],
+      zoom: 8,
+      style: "mapbox://styles/mapbox/satellite-v9",
+    });
+
+    map.on("load", (e) => {
+      const tdt_url =
+        "https://t0.tianditu.gov.cn/DataServer?T=img_w&x={x}&y={y}&l={z}&tk=";
+
+      map.addSource("tdt-source", {
+        type: "raster",
+        tiles: [tdt_url + tdttoken],
+        tileSize: 256,
+      });
+      map.addLayer({
+        id: "tdt-layer",
+        type: "raster",
+        source: "tdt-source",
+      });
+    });
+  </script>
+</html>

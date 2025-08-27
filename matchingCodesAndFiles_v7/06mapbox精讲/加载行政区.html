@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="./mapbox-gl.js"></script>
+    <link href="./mapbox-gl.css" rel="stylesheet" />
+    <script src="./token.js"></script>
+    <script src="../hangzhou.js"></script>
+    <style>
+      #map {
+        position: absolute;
+        width: 100%;
+        height: 100vh;
+        left: 0;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    mapboxgl.accessToken = mapboxtoken;
+    const map = new mapboxgl.Map({
+      container: "map",
+      center: [120.536363, 29.243242],
+      zoom: 8,
+      style: "mapbox://styles/mapbox/satellite-v9",
+    });
+    map.on("load", (e) => {
+      map.addSource("xzq-source", { type: "geojson", data: hangzhou });
+      //静态颜色的填充面
+      //   map.addLayer({
+      //     id: "xzq-layer",
+      //     type: "fill", //类型为面状要素fill
+      //     source: "xzq-source",
+      //     //paint为样式设置字段，可设置填充颜色，填充透明度，填充图案等等
+      //     paint: {
+      //       "fill-color": "yellow",
+      //       "fill-opacity": 0.8,
+      //     },
+      //   });
+
+      //分层设色的填充面
+      map.addLayer({
+        id: "xzq-layer",
+        type: "fill", //类型为面状要素fill
+        source: "xzq-source",
+        //paint为样式设置字段，可设置填充颜色，填充透明度，填充图案等等
+        paint: {
+          "fill-color": [
+            "match",
+            ["get", "name"],
+            "建德市",
+            "green",
+            "淳安县",
+            "white",
+            "桐庐县",
+            "blue",
+            "yellow",
+          ],
+          "fill-opacity": 0.8,
+        },
+      });
+      map.addLayer({
+        id: "xzq-line",
+        type: "line",
+        source: "xzq-source",
+        paint: {
+          "line-color": "red",
+          "line-width": 2,
+        },
+      });
+      map.addLayer({
+        id: "xzq-text",
+        type: "symbol",
+        source: "xzq-source",
+        paint: {
+          "text-color": "red",
+        },
+        layout: {
+          "text-field": "{name}",
+        },
+      });
+    });
+  </script>
+</html>

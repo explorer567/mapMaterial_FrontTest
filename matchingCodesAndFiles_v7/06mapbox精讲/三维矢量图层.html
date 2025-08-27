@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo</title>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+    <script src="./china.js"></script>
+    <script src="./turf.min.js"></script>
+
+    <script src="./china-province.js"></script>
+    <script src="./chinapt.js"></script>
+
+    <style>
+      #map {
+        width: 100%;
+        height: 100vh;
+        position: absolute;
+        background: url("./dp3.png");
+        background-size: cover;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+      }
+      .mapboxgl-ctrl-bottom-left {
+        display: none !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <script>
+      mapboxgl.accessToken = "你的token";
+      const map = new mapboxgl.Map({
+        center: [119.34233, 30.324342],
+        container: "map",
+        zoom: 4,
+        style: {
+          version: 8,
+          glyphs: "mapbox://fonts/{username}/{fontstack}/{range}.pbf",
+          sources: {},
+          layers: [
+            {
+              id: "back",
+              type: "background",
+              paint: {
+                "background-opacity": 0,
+              },
+              layout: {
+                visibility: "visible",
+              },
+            },
+          ],
+        },
+        attributionControl: false,
+      });
+
+      map.on("load", (e) => {
+        map.fitBounds([71, 2, 136, 54]);
+
+        map.addSource("china-source", { type: "geojson", data: china });
+        map.addSource("province-source", { type: "geojson", data: province });
+        map.addSource("chinacenter", { type: "geojson", data: chinacenter });
+
+        map.addLayer({
+          id: "china",
+          type: "line",
+          source: "china-source",
+          paint: {
+            "line-color": "rgb(39, 253, 255)",
+            "line-width": 2,
+          },
+        });
+        map.addLayer({
+          id: "province-fill",
+          type: "fill-extrusion",
+          source: "province-source",
+          paint: {
+            "fill-extrusion-color": [
+              "match",
+              ["get", "name"],
+              "西藏自治区",
+              "rgb(72, 179, 255)",
+              "青海省",
+              "rgb(33, 132, 255)",
+              "内蒙古自治区",
+              "rgb(70, 133, 255)",
+              "山西省",
+              "rgb(35, 140, 255)",
+              "rgb(28, 99, 201)",
+            ],
+            "fill-extrusion-height": 100000,
+            "fill-extrusion-base": 0,
+            "fill-extrusion-opacity": 0.8,
+          },
+        });
+        map.addLayer({
+          id: "province",
+          type: "line",
+          source: "province-source",
+          paint: {
+            "line-color": "rgb(39, 253, 255)",
+            "line-width": 0.8,
+          },
+        });
+
+        map.addLayer({
+          id: "chinacenter",
+          type: "symbol",
+          source: "chinacenter",
+          paint: {
+            "text-color": "white",
+          },
+          layout: {
+            "text-field": "{name}",
+            "text-allow-overlap": true,
+          },
+        });
+      });
+
+      map.on("click", (e) => {});
+    </script>
+  </body>
+</html>

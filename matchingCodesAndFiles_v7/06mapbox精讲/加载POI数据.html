@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="./mapbox-gl.js"></script>
+    <link href="./mapbox-gl.css" rel="stylesheet" />
+    <script src="./token.js"></script>
+    <script src="./poi.js"></script>
+    <style>
+      #map {
+        position: absolute;
+        width: 100%;
+        height: 100vh;
+        left: 0;
+        top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    mapboxgl.accessToken = mapboxtoken;
+    const map = new mapboxgl.Map({
+      container: "map",
+      center: [120.536363, 29.243242],
+      zoom: 8,
+      style: "mapbox://styles/mapbox/satellite-v9",
+    });
+    map.on("load", (e) => {
+      const poigeo = convert2Geo(poi);
+      map.loadImage("./icons/a.png", (error, image) => {
+        map.addImage("a", image);
+      });
+      map.loadImage("./icons/b.png", (error, image) => {
+        map.addImage("b", image);
+      });
+      map.loadImage("./icons/c.png", (error, image) => {
+        map.addImage("c", image);
+      });
+      map.addSource("poi-source", { type: "geojson", data: poigeo });
+      map.addLayer({
+        id: "poi-layer",
+        source: "poi-source",
+        type: "symbol",
+        layout: {
+          "icon-image": [
+            "match",
+            ["get", "type"],
+            "hospital",
+            "a",
+            "school",
+            "b",
+            "c",
+          ],
+          "icon-size": 0.6,
+        },
+      });
+    });
+    function convert2Geo(json) {
+      const result = { type: "FeatureCollection", features: [] };
+      json.forEach((j) => {
+        const feature = {
+          type: "Feature",
+          properties: {},
+          geometry: { type: "Point", coordinates: [] },
+        };
+        feature.properties = j;
+        feature.geometry.coordinates = [j.lon, j.lat];
+        result.features.push(feature);
+      });
+      return result;
+    }
+  </script>
+</html>

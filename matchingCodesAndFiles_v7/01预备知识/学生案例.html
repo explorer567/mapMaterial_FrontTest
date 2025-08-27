@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      #aa {
+        color: red;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="aa"></div>
+  </body>
+  <script>
+    const students = [
+      { name: "a", score: 5 },
+      { name: "b", score: 7 },
+      { name: "c", score: 2 },
+      { name: "d", score: 8 },
+      { name: "e", score: 3 },
+    ];
+    function getMax(student) {
+      let max = student[0];
+
+      for (let i = 0; i < student.length - 1; i++) {
+        if (student[i].score > max.score) {
+          max = student[i];
+        }
+      }
+      return max;
+    }
+    const result = getMax(students);
+    const div = document.getElementById("aa");
+    div.innerText = result.score;
+  </script>
+</html>

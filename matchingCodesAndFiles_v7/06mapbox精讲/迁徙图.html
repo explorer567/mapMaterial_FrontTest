@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+  <script src="./china.js"></script>
+  <script src="./turf.min.js"></script>
+  <script src="./city_data.js"></script>
+
+  <style>
+    #map {
+      width: 100%;
+      height: 100vh;
+      position: absolute;
+      left: 0;
+      top: 0;
+      overflow: hidden;
+    }
+
+    .mapboxgl-ctrl-bottom-left {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <script src="./myToken.js"></script>
+  <script>
+    const map = new mapboxgl.Map({
+      center: [119.34233, 30.324342],
+      container: "map",
+      zoom: 4,
+      style: "mapbox://styles/mapbox/navigation-night-v1",
+      attributionControl: false,
+    });
+
+    map.on("load", (e) => {
+      map.addSource("china-source", { type: "geojson", data: china });
+      map.addLayer({
+        id: "china-blur",
+        type: "line",
+        source: "china-source",
+        paint: {
+          "line-color": "rgb(0,109,140)",
+          "line-width": 5,
+        },
+      });
+
+      map.addLayer({
+        id: "china",
+        type: "line",
+        source: "china-source",
+        paint: {
+          "line-color": "rgb(0,246,255)",
+          "line-width": 1,
+        },
+      });
+      generatePoint(citys);
+      generateTrack(citys);
+    });
+    //构建轨迹
+    function generateTrack(data) {
+      const start = turf.point(Object.values(data)[0]);
+      for (let i in data) {
+        var end = turf.point(data[i]);
+        var greatCircle = turf.greatCircle(start, end, {
+          properties: { name: "Seattle to DC" },
+          npoints: 500,
+        });
+        var curved = turf.bezierSpline(
+          turf.lineString(greatCircle.geometry.coordinates)
+        );
+        map.addSource("circle" + i, { data: curved, type: "geojson" });
+        map.addLayer({
+          id: "cirlce-layer" + i,
+          type: "line",
+          source: "circle" + i,
+          paint: {
+            "line-color": "rgb(0,246,255)",
+            "line-width": 1,
+          },
+        });
+      }
+    }
+
+    //构建动态点
+    function generatePoint(points) {
+      const size = 80;
+      // This implements `StyleImageInterface`
+    // to draw a pulsing dot icon on the map.
+      const pulsingDot = {
+        width: size,
+        height: size,
+        data: new Uint8Array(size * size * 4),// 默认每个元素都是0，即为黑色完全透明。【一个完全透明的size*size正方形】
+
+        onAdd: function () {
+          const canvas = document.createElement("canvas");
+          canvas.width = this.width;
+          canvas.height = this.height;
+          this.context = canvas.getContext("2d");
+        },
+// Call once before every frame帧 where the icon will be used.
+        render: function () {
+          const duration = 1000;
+          // performance.now() 、// 页面从加载开始经过的时间 // 时间戳（以毫秒为单位）
+          const t = (performance.now() % duration) / duration;
+          const radius = (size / 2) * 0.3;
+          const outerRadius = (size / 2) * 0.7 * t + radius;
+          const context = this.context;
+          // Draw the outer circle.
+          context.clearRect(0, 0, this.width, this.height);
+          context.beginPath();
+          context.arc(
+            this.width / 2,
+            this.height / 2,
+            outerRadius,
+            0,
+            Math.PI * 2
+          );
+          context.fillStyle = `rgba(0, 246, 255, ${1 - t})`;
+          context.fill();
+
+          context.beginPath();
+          context.arc(
+            this.width / 2,
+            this.height / 2,
+            radius,
+            0,
+            Math.PI * 2
+          );
+          context.fillStyle = "rgba(0, 246, 255, 1)";
+          context.strokeStyle = "rgba(0, 246, 255, 1)";
+          context.lineWidth = 2 + 4 * (1 - t);
+          context.fill();
+          context.stroke();
+          
+          // context.getImageData()  // 从canvas上下文中获取指定区域的像素数据
+          // context.getImageData().data   
+          // ImageData对象的data属性，一个Uint8ClampedArray，包含图像的RGBA像素值
+          // Update this image's data with data from the canvas.
+          this.data = context.getImageData(
+            0,
+            0,
+            this.width,
+            this.height
+          ).data;
+// Continuously repaint the map, resulting
+            // in the smooth animation of the dot.
+          map.triggerRepaint();
+          // Return `true` to let the map know that the image was updated.
+          return true;
+        },
+      };
+      map.addImage("pulsing-dot", pulsingDot, { pixelRatio: 2 });
+
+      // for (let i in points) {
+      //   map.addSource("dot-point" + i, {
+      //     type: "geojson",
+      //     data: {
+      //       type: "FeatureCollection",
+      //       features: [
+      //         {
+      //           type: "Feature",
+      //           properties: { name: i },
+      //           geometry: {
+      //             type: "Point",
+      //             coordinates: points[i], // icon position [lng, lat]
+      //           },
+      //         },
+      //       ],
+      //     },
+      //   });
+      //   map.addLayer({
+      //     id: "layer-with-pulsing-dot" + i,
+      //     type: "symbol",
+      //     source: "dot-point" + i,
+      //     layout: {
+      //       "icon-image": "pulsing-dot",
+      //       "icon-allow-overlap": true,
+      //       "text-field": "{name}",
+      //       "text-anchor": "top",
+      //       "text-size": 12,
+      //       "text-offset": [0, 1],
+      //     },
+      //     paint: {
+      //       "text-color": "rgba(0, 246, 255, 1)",
+      //     },
+      //   });
+      // }
+      // 或者
+      const geojsons = {
+          type: "FeatureCollection",
+          features: [
+            // {
+            //   type: "Feature",
+            //   properties: { name: i },
+            //   geometry: {
+            //     type: "Point",
+            //     coordinates: points[i], // icon position [lng, lat]
+            //   },
+            // }
+          ],
+      };
+      for (let key in points) {
+        geojsons.features.push({
+          type: "Feature",
+          properties: { name: key },
+          geometry: {
+            type: "Point",
+            coordinates: points[key], // icon position [lng, lat]
+          },
+        });
+      }
+      map.addSource("dot-points", {
+        type: "geojson",
+        data: geojsons,
+      });
+      map.addLayer({
+        id: "layer-with-pulsing-dot",
+        type: "symbol",
+        source: "dot-points",
+        layout: {
+          "icon-image": "pulsing-dot",
+          "icon-allow-overlap": true,
+          "text-field": "{name}",
+          "text-anchor": "top",
+          "text-size": 12,
+          "text-offset": [0, 1],
+        },
+        paint: {
+          "text-color": "rgba(0, 246, 255, 1)",
+        },
+      });
+
+    }
+  </script>
+</body>
+
+</html>

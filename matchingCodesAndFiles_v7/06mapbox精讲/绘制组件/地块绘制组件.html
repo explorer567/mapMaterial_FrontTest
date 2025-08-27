@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>绘制组件</title>
+    <link rel="stylesheet" href="./js/mapbox-gl.css" />
+    <link rel="stylesheet" href="./js/mapbox-gl-draw.css" />
+    <script src="./js/mapbox-gl.js"></script>
+    <script src="./js/mapbox-gl-draw.js"></script>
+    <script src="./js/turf.min.js"></script>
+    <script src="./js/core.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .mapboxgl-ctrl-logo {
+        display: none !important;
+      }
+
+      #map {
+        position: absolute;
+        width: 100vw;
+        height: 100vh;
+        padding: 0;
+        margin: 0;
+        left: 0;
+        top: 0;
+        overflow: hidden;
+      }
+
+      .change-map {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 20;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+      }
+      .changemap-btn {
+        height: 30px;
+        background: white;
+        border: 1px solid #e2e0e0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        padding: 0 5px 0 5px;
+      }
+      /* .mapbox-gl-draw_polygon {
+        display: none !important;
+      } */
+      /* @media screen and (max-width: 800px) {
+        #save-geom {
+          display: none;
+        }
+        .mapbox-gl-draw_polygon {
+          display: none;
+        }
+        .mapboxgl-ctrl-group {
+          display: none;
+        }
+        .mapboxgl-ctrl {
+          display: none;
+        }
+      } */
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      mapboxgl.accessToken = "你的token";
+      const map = new mapboxgl.Map({
+        container: "map",
+        attributionControl: false,
+        style: "mapbox://styles/mapbox/streets-v12",
+        center: [114.05867, 32.116885],
+        zoom: 10,
+      });
+      const draw = new MapboxDraw({
+        displayControlsDefault: false,
+        controls: {
+          polygon: true,
+          line_string: true,
+          point: true,
+          trash: true,
+        },
+      });
+
+      //修改绘制样式
+      draw.options.styles[0].paint["fill-opacity"] = 0.5;
+      draw.options.styles[19].paint["circle-radius"] = 6;
+      map.addControl(draw);
+      map.on("draw.create", createArea);
+      map.on("draw.delete", deleteArea);
+      map.on("draw.update", updateArea);
+      map.on("load", () => {});
+
+      //此方法用于改变绘制按钮的样式暂不开放
+      // function startDraw() {
+      //   var btns = document.getElementsByClassName("mapbox-gl-draw_polygon");
+      //   btns[0].click();
+      // }
+      //新增
+      function createArea(e) {
+        // const id = e.features[0].id;
+        // axios({
+        //   method: "POST",
+        //   url: "http://localhost:8080/mass/add-mass",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   data: {
+        //     id: id.toString(),
+        //     massName: "韩国",
+        //     area: "6575",
+        //     geom: JSON.stringify(e.features[0].geometry),
+        //   },
+        // }).then((res) => {});
+      }
+      //更新
+      function updateArea(e) {
+        // axios({
+        //   method: "POST",
+        //   url: "http://localhost:8080/mass/edit-mass",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   data: {
+        //     id: e.features[0].id,
+        //     massName: "加拿大",
+        //     area: "oiuu",
+        //     geom: JSON.stringify(e.features[0].geometry),
+        //   },
+        // }).then((res) => {});
+      }
+      //删除
+      function deleteArea(e) {
+        // const id = e.features[0].id;
+        // axios({
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   url: "http://localhost:8080/mass/delete-mass",
+        //   data: { id: id },
+        // }).then((res) => {});
+      }
+
+      //此函数将会返回当前页面上的存在的所有图形
+      function saveFeature() {
+        //这里可以写保存到服务端的接口
+        return draw.getAll();
+      }
+
+      function saveArea() {}
+      function deleteArea() {}
+    </script>
+  </body>
+</html>

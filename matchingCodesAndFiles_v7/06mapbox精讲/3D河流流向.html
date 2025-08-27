@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>河流流向</title>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+    <!-- <script src="./token.js"></script> -->
+    <script src="./myToken.js"></script>
+    <script src="./river.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .mapboxgl-ctrl-logo {
+        display: none !important;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    // mapboxgl.accessToken = "申请你自己的token";
+    const map = new mapboxgl.Map({
+      container: "map",
+      attributionControl: false,
+      style: "mapbox://styles/mapbox/satellite-v9",
+      zoom: 6,
+      bearing: 45,
+      center: [120.219605, 30.222568],
+    });
+    map.on("load", () => {
+      const data = river;
+      const coordinates = data.features[0].geometry.coordinates;
+
+      data.features[0].geometry.coordinates = [coordinates[0]];
+
+      // add it to the map
+      map.addSource("trace", { type: "geojson", data: data });
+      map.addLayer({
+        id: "trace",
+        type: "line",
+        source: "trace",
+        paint: {
+          "line-color": "rgba(19, 246, 254, 0.8)",
+          "line-width": 6,
+        },
+        layout: {
+          "line-cap": "round",
+        },
+      });
+      map.addSource("mapbox-dem", {
+        type: "raster-dem",
+        url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+        tileSize: 512,
+        maxzoom: 14,
+      });
+      // add the DEM source as a terrain layer with exaggerated height
+      map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+      map.setFog({
+        range: [0.8, 8],
+        color: "white",
+        "horizon-blend": 0.5,
+        "high-color": "#245bde",
+        "space-color": "#000000",
+        "star-intensity": 0.15,
+      });
+      // setup the viewport
+      map.jumpTo({ center: coordinates[0], zoom: 11.5 });
+      map.setPitch(70);
+
+      // on a regular basis, add more coordinates from the saved list and update the map
+      let i = 0;
+      const timer = setInterval(() => {
+        if (i < coordinates.length) {
+          data.features[0].geometry.coordinates.push(coordinates[i]);
+          map.getSource("trace").setData(data);
+          map.panTo(coordinates[i]);
+          i++;
+        } else {
+          //window.clearInterval(timer);
+          data.features[0].geometry.coordinates = [];
+          i = 0;
+        }
+      }, 100);
+    });
+  </script>
+</html>

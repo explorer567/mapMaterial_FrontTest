@@ -109,7 +109,7 @@
       var isMeasure = true;
       // 禁止双击缩放
       map.doubleClickZoom.disable();
-      map.getCanvas().style.cursor = "default";
+      map.getCanvas().style.cursor = "default"; // 默认的箭头图标
 
       function clearMeasure() {
         const dom = document.getElementsByClassName("measure-result");
@@ -155,7 +155,8 @@
       var tooltip = new mapboxgl.Marker(option).setLngLat([0, 0]).addTo(map);
       var markers = [];
 
-      var source = map.getSource("points");
+      var source = map.getSource("points"); // 未添加数据源时，source是undefined
+      debugger
       if (source) {
         map.getSource("points").setData(jsonPoint);
         map.getSource("line-move").setData(jsonLine);

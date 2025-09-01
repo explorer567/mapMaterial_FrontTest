@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tiptap 插入内容示例</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f8f9fa;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 30px;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .editor-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        min-height: 300px;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 10px 15px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .ProseMirror {
+        min-height: 200px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      .ProseMirror:focus {
+        outline: none;
+        border-color: #4caf50;
+      }
+      .status {
+        text-align: center;
+        font-style: italic;
+        color: #666;
+      }
+      .tip {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 10px 15px;
+        margin: 15px 0;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Tiptap 插入内容示例</h1>
+
+    <div class="container">
+      <div class="tip">
+        <strong>提示：</strong>
+        此示例使用ES模块方式引入Tiptap，符合官方推荐方式。
+      </div>
+
+      <div class="controls">
+        <button id="insertText">在光标处插入文本</button>
+        <button id="insertEnd">在文档末尾插入文本</button>
+        <button id="insertBold">插入带格式文本</button>
+        <button id="insertList">插入列表</button>
+        <button id="clearEditor">清空编辑器</button>
+      </div>
+
+      <div id="editor" class="editor-container"></div>
+
+      <p class="status" id="status">编辑器已准备就绪。点击上方按钮插入内容。</p>
+    </div>
+
+    <script type="module">
+      import { Editor } from "https://esm.sh/@tiptap/core@2.0.0";
+      import StarterKit from "https://esm.sh/@tiptap/starter-kit@2.0.0";
+
+      let editor = null;
+
+      // 初始化编辑器
+      function initEditor() {
+        editor = new Editor({
+          element: document.querySelector("#editor"),
+          extensions: [StarterKit],
+          content:
+            "<p>尝试在编辑器中的任意位置点击设置光标，然后点击上方按钮插入内容。</p><p>如果没有设置光标，内容将插入到文档末尾。</p>",
+          onUpdate: (obj) => {
+            // 内容发生变化
+            updateStatus();
+          },
+          onSelectionUpdate: (obj) => {
+            // 选择在编辑器中发生更改时
+            // debugger;
+            updateStatus();
+          },
+          onFocus(obj) {
+            // debugger;
+          },
+          onBlur(obj) {
+            // debugger;
+          },
+        });
+      }
+
+      // 更新状态信息
+      function updateStatus() {
+        const statusElement = document.getElementById("status");
+        if (editor.isFocused === false) {
+          // 没有聚焦
+          statusElement.textContent =
+            "当前页面没有光标，内容将插入到文档末尾。";
+        } else {
+          const pos = editor.state.selection.$head.pos;
+          statusElement.textContent = `光标位置: ${pos}，内容将插入到此处。`;
+        }
+      }
+
+      // 在光标处或文档末尾插入内容
+      function insertContentAtCursor(content) {
+        if (editor.isFocused === false) {
+          // 没有光标，插入到文档末尾
+          const endPos = editor.state.doc.content.size;
+          editor.commands.insertContentAt(endPos, content);
+        } else {
+          // 有光标，插入到光标位置
+          const pos = editor.state.selection.$head.pos;
+          editor.commands.insertContentAt(pos, pos + content + pos);
+        }
+
+        // 更新状态
+        updateStatus();
+      }
+
+      // 清空编辑器
+      function clearEditor() {
+        editor.commands.clearContent();
+        editor.commands.insertContent("<p>编辑器已清空。</p>");
+        updateStatus();
+      }
+
+      // 设置按钮事件监听
+      function setupEventListeners() {
+        document.getElementById("insertText").addEventListener("click", () => {
+          insertContentAtCursor("这段文本插入在光标处");
+        });
+
+        document.getElementById("insertEnd").addEventListener("click", () => {
+          insertContentAtCursor("这段文本插入在文档末尾");
+        });
+
+        document.getElementById("insertBold").addEventListener("click", () => {
+          insertContentAtCursor("<strong>加粗文本</strong>");
+        });
+
+        document.getElementById("insertList").addEventListener("click", () => {
+          insertContentAtCursor("<ul><li>列表项1</li><li>列表项2</li></ul>");
+        });
+
+        document
+          .getElementById("clearEditor")
+          .addEventListener("click", clearEditor);
+      }
+
+      // 初始化编辑器
+      // window.addEventListener('DOMContentLoaded', () => {
+      initEditor();
+      setupEventListeners();
+      updateStatus();
+      // });
+    </script>
+  </body>
+</html>

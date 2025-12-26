@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiptap表格实现 - 飞书云文档风格</title>
+    <!-- <script src="https://unpkg.com/@tiptap/core@2.0.0/dist/tiptap-core.min.js"></script>
+    <script src="https://unpkg.com/@tiptap/starter-kit@2.0.0/dist/starter-kit.min.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-table@2.0.0/dist/index.min.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-table-row@2.0.0/dist/index.min.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-table-header@2.0.0/dist/index.min.js"></script>
+    <script src="https://unpkg.com/@tiptap/extension-table-cell@2.0.0/dist/index.min.js"></script> -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        body {
+            background-color: #f6f8fa;
+            color: #1f2329;
+            line-height: 1.5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .logo svg {
+            width: 24px;
+            height: 24px;
+        }
+        .toolbar {
+            padding: 12px 20px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .toolbar-group {
+            display: flex;
+            gap: 4px;
+            padding: 0 8px;
+            border-right: 1px solid #e5e7eb;
+        }
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+        button {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        button:hover {
+            background: #f3f4f6;
+        }
+        button.active {
+            background: #eef2ff;
+            color: #4f46e5;
+            border-color: #c7d2fe;
+        }
+        .editor-container {
+            padding: 20px;
+            min-height: 500px;
+        }
+        .ProseMirror {
+            outline: none;
+            padding: 10px;
+        }
+        .ProseMirror table {
+            border-collapse: collapse;
+            margin: 10px 0;
+            overflow: hidden;
+            width: 100%;
+        }
+        .ProseMirror td, .ProseMirror th {
+            border: 1px solid #d1d5db;
+            padding: 8px 12px;
+            position: relative;
+            vertical-align: top;
+            min-width: 100px;
+        }
+        .ProseMirror th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            text-align: left;
+        }
+        .ProseMirror .selectedCell {
+            background-color: #eef2ff;
+        }
+        .table-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 8px;
+            z-index: 1000;
+            display: none;
+        }
+        .table-menu.active {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+        }
+        .table-menu-item {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .table-menu-item:hover {
+            background: #f3f4f6;
+        }
+        .table-menu-item.selected {
+            background: #4f46e5;
+            color: white;
+        }
+        .table-controls {
+            position: absolute;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 6px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 1000;
+        }
+        .table-controls.active {
+            display: flex;
+        }
+        .table-controls button {
+            padding: 4px 8px;
+            font-size: 12px;
+            justify-content: flex-start;
+        }
+        footer {
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            border-top: 1px solid #e5e7eb;
+        }
+        .color-preview {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        .bg-blue { background-color: #dbeafe; }
+        .bg-green { background-color: #d1fae5; }
+        .bg-yellow { background-color: #fef3c7; }
+        .bg-red { background-color: #fee2e2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="#4F46E5" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+                <span>飞书云文档 - 表格功能实现</span>
+            </div>
+            <button id="help-button">帮助</button>
+        </header>
+        
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button id="insert-table" title="插入表格">插入表格</button>
+            </div>
+            <div class="toolbar-group">
+                <button id="add-row-above" title="上方插入行">+行(上)</button>
+                <button id="add-row-below" title="下方插入行">+行(下)</button>
+                <button id="delete-row" title="删除行">-行</button>
+            </div>
+            <div class="toolbar-group">
+                <button id="add-column-left" title="左侧插入列">+列(左)</button>
+                <button id="add-column-right" title="右侧插入列">+列(右)</button>
+                <button id="delete-column" title="删除列">-列</button>
+            </div>
+            <div class="toolbar-group">
+                <button id="merge-cells" title="合并单元格">合并</button>
+                <button id="split-cell" title="拆分单元格">拆分</button>
+            </div>
+            <div class="toolbar-group">
+                <button id="toggle-header" title="切换标题行">标题行</button>
+                <button id="toggle-header-column" title="切换标题列">标题列</button>
+            </div>
+        </div>
+        
+        <div class="editor-container">
+            <div id="editor"></div>
+        </div>
+        
+        <div id="table-menu" class="table-menu">
+            <!-- 将通过JS动态生成 -->
+        </div>
+        
+        <div id="table-controls" class="table-controls">
+            <!-- 将通过JS动态生成 -->
+        </div>
+        
+        <footer>
+            <p>使用 Tiptap 实现飞书云文档风格的表格功能</p>
+        </footer>
+    </div>
+
+    <script type="module">
+      import { Editor } from 'https://esm.sh/@tiptap/core@2.0.0'
+        import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.0.0'
+        import Table from 'https://esm.sh/@tiptap/extension-table@2.0.0'
+        import TableRow from 'https://esm.sh/@tiptap/extension-table-row@2.0.0'
+        import TableHeader from 'https://esm.sh/@tiptap/extension-table-header@2.0.0'
+        import TableCell from 'https://esm.sh/@tiptap/extension-table-cell@2.0.0'
+        // 初始化编辑器
+        const editor = new Editor({
+            element: document.getElementById('editor'),
+            extensions: [
+                StarterKit,
+                Table.configure({
+                    resizable: true,
+                }),
+                TableRow,
+                TableHeader,
+                TableCell,
+            ],
+            content: `
+                <h2>飞书云文档表格功能示例</h2>
+                <p>点击"插入表格"按钮或使用表格菜单创建表格。支持以下功能：</p>
+                <ul>
+                    <li>插入/删除行列</li>
+                    <li>合并/拆分单元格</li>
+                    <li>设置表头行和列</li>
+                    <li>调整表格样式</li>
+                </ul>
+                <p>尝试在表格中右键点击以显示上下文菜单。</p>
+            `,
+        });
+
+        // 生成表格选择菜单
+        const tableMenu = document.getElementById('table-menu');
+        for (let i = 0; i < 5; i++) {
+            for (let j = 0; j < 5; j++) {
+                const item = document.createElement('div');
+                item.className = 'table-menu-item';
+                item.textContent = `${i+1}x${j+1}`;
+                item.dataset.rows = i+1;
+                item.dataset.cols = j+1;
+                item.addEventListener('click', () => {
+                    editor.commands.insertTable({ 
+                        rows: parseInt(item.dataset.rows), 
+                        cols: parseInt(item.dataset.cols),
+                        withHeaderRow: true 
+                    });
+                    tableMenu.classList.remove('active');
+                });
+                tableMenu.appendChild(item);
+            }
+        }
+
+        // 工具栏功能实现
+        document.getElementById('insert-table').addEventListener('click', function() {
+            const rect = this.getBoundingClientRect();
+            tableMenu.style.top = `${rect.bottom + window.scrollY}px`;
+            tableMenu.style.left = `${rect.left + window.scrollX}px`;
+            tableMenu.classList.add('active');
+        });
+
+        document.getElementById('add-row-above').addEventListener('click', () => {
+            editor.commands.addRowBefore();
+        });
+
+        document.getElementById('add-row-below').addEventListener('click', () => {
+            editor.commands.addRowAfter();
+        });
+
+        document.getElementById('delete-row').addEventListener('click', () => {
+            editor.commands.deleteRow();
+        });
+
+        document.getElementById('add-column-left').addEventListener('click', () => {
+            editor.commands.addColumnBefore();
+        });
+
+        document.getElementById('add-column-right').addEventListener('click', () => {
+            editor.commands.addColumnAfter();
+        });
+
+        document.getElementById('delete-column').addEventListener('click', () => {
+            editor.commands.deleteColumn();
+        });
+
+        document.getElementById('merge-cells').addEventListener('click', () => {
+            editor.commands.mergeCells();
+        });
+
+        document.getElementById('split-cell').addEventListener('click', () => {
+            editor.commands.splitCell();
+        });
+
+        document.getElementById('toggle-header').addEventListener('click', () => {
+            editor.commands.toggleHeaderRow();
+        });
+
+        document.getElementById('toggle-header-column').addEventListener('click', () => {
+            editor.commands.toggleHeaderColumn();
+        });
+
+        // 点击页面其他区域关闭菜单
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.table-menu') && !e.target.closest('#insert-table')) {
+                tableMenu.classList.remove('active');
+            }
+        });
+
+        // 帮助按钮
+        document.getElementById('help-button').addEventListener('click', () => {
+            alert('飞书云文档表格功能模拟实现\n\n使用Tiptap编辑器构建，支持基本表格操作功能。');
+        });
+    </script>
+</body>
+</html>

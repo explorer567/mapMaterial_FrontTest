@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>title</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+  <!-- <script src="./token.js"></script> -->
+  <script src="./myToken.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .mapboxgl-ctrl-logo {
+      display: none !important;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+      background-color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+</body>
+<script>
+  const map = new mapboxgl.Map({
+    container: "map",
+    attributionControl: false,
+    style: "mapbox://styles/mapbox/satellite-v9",
+    zoom: 6,
+    bearing: 45,
+    center: [120.219605, 30.222568],
+  });
+  // 右下角属性控件
+  map.addControl(new mapboxgl.AttributionControl({
+    // customAttribution: 'Map design by me',
+    customAttribution: ['Map design by me', '2Map design by me2'],
+    compact: true
+  }))
+  // 全屏控件
+  // map.addControl(new mapboxgl.FullscreenControl({container: document.querySelector('body')}));
+  map.addControl(new mapboxgl.FullscreenControl({}));
+  // 地理定位控件
+  map.addControl(new mapboxgl.GeolocateControl({
+    positionOptions: {
+      enableHighAccuracy: true
+    },
+    // trackUserLocation: true,
+    showUserHeading: true
+  }));
+  // 实现 IControl 接口的自定义控件。：一个简单的按钮，当点击按钮时，会在控制台中打印一条消息。
+  // 定义一个自定义控件类
+  class CustomControl {
+    constructor() {
+      this._container = document.createElement('div');
+      this._container.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'; // mapboxgl-ctrl类 使得控件能够继承Mapbox GL JS的默认样式
+      // this._button = document.createElement('button');
+      // this._button.textContent = 'Click Me';
+      // this._container.appendChild(this._button);
+      this._container.textContent = `hello`
+    }
+
+    // 实现 onAdd 方法
+    onAdd(map) {
+      this._map = map;
+      // this._button.addEventListener('click', () => {
+      //     console.log('Button clicked!');
+      // });
+      return this._container;
+    }
+
+    // 实现 onRemove 方法
+    onRemove() {
+      this._container.parentNode.removeChild(this._container);
+      this._map = undefined;
+    }
+  }
+  // 将自定义控件实例添加到地图
+  const customControl = new CustomControl();
+  map.addControl(customControl, 'top-right');
+  map.on("load", () => {
+
+  });
+</script>
+
+</html>

@@ -156,7 +156,6 @@
       var markers = [];
 
       var source = map.getSource("points"); // 未添加数据源时，source是undefined
-      debugger
       if (source) {
         map.getSource("points").setData(jsonPoint);
         map.getSource("line-move").setData(jsonLine);
@@ -285,10 +284,11 @@
 
       map.on("dblclick", function (_e) {
         if (isMeasure) {
+          debugger
           var coords = [_e.lngLat.lng, _e.lngLat.lat];
           addPoint(coords);
           isMeasure = false;
-          map.getCanvas().style.cursor = "";
+          map.getCanvas().style.cursor = "";// 不给时，默认是拖拽小手
           jsonPoint.features = [];
           //jsonLine.features = [];
           tooltip.remove();

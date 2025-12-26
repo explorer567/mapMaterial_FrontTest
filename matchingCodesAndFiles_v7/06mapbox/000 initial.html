@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>title</title>
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+    <!-- <script src="./token.js"></script> -->
+    <script src="./myToken.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .mapboxgl-ctrl-logo {
+        display: none !important;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+  <script>
+    // mapboxgl.accessToken = "申请你自己的token";
+    const map = new mapboxgl.Map({
+      container: "map",
+      attributionControl: false,
+      style: "mapbox://styles/mapbox/satellite-v9",
+      zoom: 6,
+      bearing: 45,
+      center: [120.219605, 30.222568],
+    });
+    map.on("load", () => {
+     
+    });
+  </script>
+</html>

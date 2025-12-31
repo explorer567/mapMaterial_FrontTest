@@ -1,4 +1,10 @@
 ```
+# 检查是否配置了代理
+git config --global http.proxy
+git config --global https.proxy
+git config http.proxy      # 检查当前仓库局部设置（非全局）
+git config https.proxy
+
 # 设置环境变量
 set HTTP_PROXY=http://127.0.0.1:7890
 set HTTPS_PROXY=http://127.0.0.1:7890
@@ -24,6 +30,9 @@ git config https.proxy http://127.0.0.1:7890
 # 移除
 git config --local --unset http.proxy
 git config --local --unset https.proxy
+或
+git config --unset http.proxy
+git config --unset https.proxy
 ```
 ```
 验证：

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>显示器老化快速测试</title>
+  <style>
+    .test-area {
+      height: 200px;
+      margin: 20px;
+      position: relative;
+      border: 2px solid #333;
+    }
+
+    .test-label {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>显示器老化快速测试</h2>
+
+  <h3>1. CCFL背光老化迹象（2008/2011年显示器大概率是CCFL）</h3>
+  <div class="test-area" style="background: black">
+    <div class="test-label">纯黑测试 - 观察：是否真的是黑色？还是灰色？四角是否更亮？</div>
+  </div>
+
+  <div class="test-area" style="background: white">
+    <div class="test-label" style="color: black">纯白测试 - 观察：是否均匀？是否有发黄区域？</div>
+  </div>
+
+  <h3>2. 响应速度/残影测试</h3>
+  <div id="ghosting-test" style="height: 100px; background: blue; position: relative;">
+    <div id="moving-block" style="
+            width: 50px; height: 50px; 
+            background: yellow;
+            position: absolute;
+            left: 0;
+            top: 25px;
+        "></div>
+  </div>
+  <button onclick="startGhostingTest()">开始残影测试</button>
+
+  <h3>3. 色彩衰减测试</h3>
+  <div style="display: flex;">
+    <div style="flex: 1; background: red; height: 100px;"></div>
+    <div style="flex: 1; background: green; height: 100px;"></div>
+    <div style="flex: 1; background: blue; height: 100px;"></div>
+  </div>
+  <p>观察：三原色是否依然鲜艳？还是感觉「褪色」了？</p>
+
+  <script>
+    function startGhostingTest() {
+      const block = document.getElementById('moving-block');
+      let left = 0;
+      let direction = 1;
+
+      const interval = setInterval(() => {
+        left += direction * 5;
+        if (left >= 250) direction = -1;
+        if (left <= 0) direction = 1;
+        block.style.left = left + 'px';
+
+        // 观察黄色方块后面是否有蓝色残影
+        // CCFL老显示器常见问题
+      }, 50);
+
+      setTimeout(() => clearInterval(interval), 5000);
+    }
+  </script>
+</body>
+
+</html>

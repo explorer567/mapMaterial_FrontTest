@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    // 在你的控制台运行这个测试
+    function testColorAccuracy() {
+      const colors = {
+        '纯白 (应纯白)': '#ffffff',
+        '设计白 (应极浅灰)': '#fafafb',
+        '中性灰 (应明显灰)': '#f5f5f5',
+        '品牌蓝 (应准确)': '#1890ff',
+        '警告红 (应鲜艳)': '#f5222d'
+      };
+
+      console.log('=== 颜色准确性测试 ===');
+      console.log('在你的显示器上观察：');
+      console.log('1. #ffffff 应该是纯白色，不是灰色');
+      console.log('2. #fafafb 应该是极浅灰色，能与白色区分');
+      console.log('3. 如果两者都显示为灰色 → 你的调整过度了');
+      console.log('4. 如果品牌色看起来暗淡 → 整体颜色失真');
+
+      // 创建测试元素
+      const testDiv = document.createElement('div');
+      testDiv.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: white;
+        padding: 20px;
+        border: 2px solid red;
+        z-index: 9999;
+    `;
+
+      let html = '<h3>颜色测试</h3>';
+      for (const [name, color] of Object.entries(colors)) {
+        html += `
+            <div style="margin: 10px 0; padding: 10px; background: ${color};">
+                ${name}: ${color}
+            </div>
+        `;
+      }
+      html += '<p>问：白色(#fff)真的是纯白吗？还是发灰？</p>';
+
+      testDiv.innerHTML = html;
+      document.body.appendChild(testDiv);
+    }
+
+    // 运行测试
+    testColorAccuracy();
+  </script>
+</body>
+
+</html>
